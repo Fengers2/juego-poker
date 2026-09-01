@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Mesa 52 | Texas Hold'em</title>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@600;700;800&display=swap');
+		:root { --ink:#152321; --muted:#6d7770; --paper:#f5f0e5; --felt:#17483f; --felt-deep:#0c302c; --gold:#d9a441; --red:#b73c35; --line:#d9d1c2; --white:#fffdf8; }
+		* { box-sizing:border-box; }
+		body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper); font-family:'DM Mono', monospace; }
+		header { max-width:1180px; margin:auto; padding:28px 28px 18px; display:flex; align-items:end; justify-content:space-between; gap:20px; }
+		.brand { display:flex; align-items:center; gap:12px; }
+		.mark { width:38px; height:38px; display:grid; place-items:center; background:var(--red); color:#fff; font-family:Georgia,serif; font-size:22px; transform:rotate(-8deg); }
+		.eyebrow { margin:0 0 5px; color:var(--red); font-size:11px; letter-spacing:2px; }
+		h1,h2,h3 { font-family:'Playfair Display', Georgia, serif; margin:0; }
+		h1 { font-size:29px; letter-spacing:-.5px; }
+		.table-meta { text-align:right; color:var(--muted); font-size:11px; line-height:1.8; }
+		.table-meta strong { color:var(--ink); font-size:13px; }
+		main { max-width:1180px; margin:auto; padding:0 28px 34px; }
+		.felt { position:relative; min-height:610px; padding:28px; overflow:hidden; background:radial-gradient(ellipse at center, #1d5a4d 0%, var(--felt) 55%, var(--felt-deep) 100%); border:10px solid #d2a052; box-shadow:inset 0 0 0 2px #805d2b, 0 18px 45px #13211e22; }
+		.felt:before { content:""; position:absolute; inset:18px; border:1px solid #ffffff2e; border-radius:50%; pointer-events:none; }
+		.rule-strip { position:relative; display:flex; justify-content:space-between; align-items:center; color:#e7e1cf; font-size:11px; letter-spacing:.5px; }
+		.phase { color:#f4c96b; text-transform:uppercase; letter-spacing:2px; }
+		.pot { padding:8px 13px; border:1px solid #ffffff3b; color:#fff; background:#082d2988; }
+		.pot b { color:#f4c96b; }
+		.seats { position:relative; display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:30px; }
+		.seat { color:#fff; min-height:76px; padding:12px; border:1px solid #ffffff24; background:#0b302c99; }
+		.seat.active { border-color:var(--gold); box-shadow:0 0 0 2px #d9a44133; }
+		.seat.folded { opacity:.42; }
+		.seat-top { display:flex; justify-content:space-between; gap:8px; font-size:11px; }
+		.seat-name { font-weight:500; }
+		.dealer { color:#142d29; background:var(--gold); border-radius:50%; padding:2px 5px; font-size:10px; }
+		.stack { margin-top:12px; color:#d8e8d9; font-size:12px; }
+		.opponent-cards { display:flex; gap:5px; margin-top:10px; }
+		.board-wrap { position:relative; margin:40px auto 28px; text-align:center; }
+		.board { display:flex; justify-content:center; min-height:102px; gap:10px; }
+		.card { position:relative; width:63px; height:88px; padding:7px; background:var(--white); color:var(--ink); border:1px solid #c9c0b0; box-shadow:3px 4px 0 #09282144; font-family:Georgia,serif; line-height:1; }
+		.card .rank { position:absolute; font-size:18px; font-weight:700; line-height:1; }
+		.card .rank-top { top:8px; left:8px; }
+		.card .rank-bottom { right:8px; bottom:8px; transform:rotate(180deg); }
+		.card .suit { position:absolute; inset:0; display:grid; place-items:center; font-size:30px; line-height:1; }
+		.card.red { color:var(--red); }
+		.card.back { background:repeating-linear-gradient(45deg,#b63e35 0 5px,#8d2e2a 5px 10px); border-color:#f7d7b8; color:#fff; display:grid; place-items:center; font-size:25px; }
+		.card.empty { background:#ffffff0b; border:1px dashed #ffffff38; box-shadow:none; }
+		.card.mini { width:31px; height:43px; padding:3px; box-shadow:2px 2px 0 #09282144; }
+		.card.mini .rank { font-size:11px; }
+		.card.mini .rank-top { top:4px; left:5px; }
+		.card.mini .rank-bottom { right:5px; bottom:4px; }
+		.card.mini .suit { font-size:18px; }
+		.deal-card { animation:deal-in .55s cubic-bezier(.2,.8,.2,1) both; }
+		@keyframes deal-in { from { opacity:0; transform:translateY(-28px) rotate(-8deg) scale(.82); } to { opacity:1; transform:none; } }
+		.community-label { margin-top:11px; color:#c4d6c5; font-size:10px; letter-spacing:2px; text-transform:uppercase; }
+		.message { min-height:22px; color:#f8dda0; font-size:12px; text-align:center; }
+		.player-zone { position:relative; display:flex; justify-content:center; margin-top:22px; }
+		.hero-seat { width:min(100%,440px); padding:15px 17px; border:1px solid var(--gold); background:#082d29cc; color:#fff; }
+		.hero-row { display:flex; align-items:center; justify-content:space-between; }
+		.hero-row strong { font-family:'Playfair Display',Georgia,serif; font-size:20px; }
+		.hero-cards { display:flex; justify-content:center; gap:10px; margin:14px 0 2px; }
+		.controls { max-width:720px; margin:22px auto 0; padding:18px; background:var(--white); border:1px solid var(--line); }
+		.control-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:15px; font-size:11px; }
+		.control-top b { font-size:15px; }
+		.raise { display:flex; align-items:center; gap:11px; margin-bottom:15px; }
+		input[type=range] { flex:1; accent-color:var(--red); }
+		.raise-value { min-width:80px; text-align:right; color:var(--red); }
+		.actions { display:grid; grid-template-columns:1fr 1fr 1.4fr 1fr; gap:9px; }
+		.new-hand { width:100%; margin-top:10px; color:#fff; background:var(--ink); border-color:var(--ink); }
+		button { min-height:42px; border:1px solid var(--ink); cursor:pointer; color:var(--ink); background:transparent; font:500 11px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.7px; }
+		button:hover:not(:disabled) { transform:translateY(-1px); }
+		button:disabled { cursor:not-allowed; opacity:.35; }
+		.btn-main { background:var(--red); border-color:var(--red); color:#fff; }
+		.btn-dark { color:#fff; background:var(--ink); border-color:var(--ink); }
+		.lower { display:grid; grid-template-columns:1.25fr .75fr; gap:18px; margin-top:20px; }
+		.panel { padding:18px; border:1px solid var(--line); background:#fffaf1; }
+		.panel h2 { margin-bottom:12px; font-size:18px; }
+		.log { max-height:105px; overflow:auto; color:var(--muted); font-size:11px; line-height:1.8; }
+		.log p { margin:0; border-bottom:1px solid #e7dfd2; }
+		.rules { color:var(--muted); font-size:10px; line-height:1.7; }
+		.rules b { color:var(--ink); }
+		.toast { position:fixed; right:22px; bottom:22px; max-width:310px; padding:14px 16px; color:#fff; background:var(--ink); box-shadow:0 8px 25px #0002; font-size:11px; opacity:0; transform:translateY(10px); pointer-events:none; transition:.25s; }
+		.toast.show { opacity:1; transform:none; }
+		@media (max-width:720px) { header { padding:20px 16px 14px; align-items:start; } main { padding:0 12px 25px; } .table-meta { display:none; } h1{font-size:24px;} .felt { padding:17px 12px; border-width:6px; min-height:650px; } .felt:before{inset:10px;} .seats{gap:7px; margin-top:22px;} .seat{padding:9px 6px; min-height:69px;} .seat-top{font-size:9px;} .stack{font-size:10px; margin-top:9px;} .board-wrap{margin:32px auto 20px;} .board{gap:5px;} .card{width:54px;height:77px;font-size:19px;padding:5px;} .card small{font-size:8px;} .lower{grid-template-columns:1fr;} .actions{grid-template-columns:1fr 1fr;} .actions button:nth-child(3){order:4;} .controls{padding:13px;} }
+	</style>
+</head>
+<body>
+	<header>
+		<div class="brand"><div class="mark">A</div><div><p class="eyebrow">MESA ABIERTA · NLHE</p><h1>52 / Texas Hold'em</h1></div></div>
+		<div class="table-meta"><strong>Partida de práctica</strong><br>Las cartas no mienten. La estrategia sí puede.</div>
+	</header>
+	<main>
+		<section class="felt">
+			<div class="rule-strip"><span class="phase" id="phase">Pre-flop</span><span class="pot">Bote <b id="pot">0</b> fichas</span></div>
+			<div class="seats" id="opponents"></div>
+			<div class="board-wrap"><div class="board" id="board"></div><div class="community-label">Cartas comunitarias</div></div>
+			<div class="message" id="message"></div>
+			<div class="player-zone"><div class="hero-seat"><div class="hero-row"><strong>Tú</strong><span id="heroStack">1.000 fichas</span></div><div class="hero-cards" id="heroCards"></div></div></div>
+		</section>
+		<section class="controls">
+			<div class="control-top"><span>Tu turno</span><b id="toCall">Igualar 0</b><span id="minRaise">Subida mín. 20</span></div>
+			<div class="raise"><input id="raiseSlider" type="range" min="20" max="1000" value="40"><span class="raise-value" id="raiseValue">40 fichas</span></div>
+			<div class="actions"><button id="foldBtn">Retirarse</button><button id="checkBtn">Pasar</button><button class="btn-main" id="callBtn">Igualar</button><button class="btn-dark" id="raiseBtn">Subir</button></div>
+			<button class="new-hand" id="newBtn" hidden>Repartir nueva mano</button>
+		</section>
+		<section class="lower"><div class="panel"><h2>Registro de la mano</h2><div class="log" id="log"></div></div><div class="panel"><h2>En esta mesa</h2><div class="rules"><b>Sin límite</b>: la apuesta mínima es la ciega grande y puedes arriesgar todas tus fichas.<br><b>Orden</b>: pre-flop, flop, turn, river y showdown.<br><b>Objetivo</b>: forma la mejor mano de cinco cartas con tus siete cartas disponibles.</div></div></section>
+	</main>
+	<div class="toast" id="toast"></div>
+	<script>
+		const suits = [{symbol:'♠', name:'spades'}, {symbol:'♥', name:'hearts'}, {symbol:'♦', name:'diamonds'}, {symbol:'♣', name:'clubs'}];
+		const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+		const names = ['Lola','Bruno','Vega'];
+		const state = { players:[], deck:[], board:[], stage:0, pot:0, currentBet:0, lastRaise:20, dealer:0, acting:true, handOver:false };
+		const $ = id => document.getElementById(id);
+		const money = value => value.toLocaleString('es-ES');
+		function freshDeck(){ return suits.flatMap(s => ranks.map((r,i) => ({rank:r, value:i+2, suit:s.symbol, red:s.symbol==='♥'||s.symbol==='♦'}))).sort(() => Math.random()-.5); }
+		function cardHTML(card, hidden=false, delay=0, mini=false){ const size=mini?' mini':''; if(hidden) return `<div class="card back deal-card${size}" style="animation-delay:${delay}ms">◆</div>`; return `<div class="card deal-card${size} ${card.red?'red':''}" style="animation-delay:${delay}ms"><span class="rank rank-top">${card.rank}</span><span class="rank rank-bottom">${card.rank}</span><span class="suit">${card.suit}</span></div>`; }
+		function addLog(text){ $('log').insertAdjacentHTML('afterbegin', `<p>${text}</p>`); }
+		function setup(){
+			const initialStacks = [
+				{ name:'Lola', stack:980 },
+				{ name:'Bruno', stack:990 },
+				{ name:'Vega', stack:980 },
+				{ name:'Tú', stack:990 }
+			];
+			state.deck=freshDeck(); state.board=[]; state.stage=0; state.pot=30; state.currentBet=20; state.lastRaise=20; state.handOver=false; state.acting=true;
+			if(!state.players.length){
+				state.players=initialStacks.map((p, index) => ({
+					name:p.name,
+					stack:p.stack,
+					bet:index===0?20:index===1?10:index===2?20:0,
+					hand:[],
+					active:true,
+					ai:index<3
+				}));
+			} else {
+				state.players.forEach((p) => {
+					p.bet = p.name === 'Tú' ? 0 : p.name === 'Bruno' ? 10 : 20;
+					p.hand = [];
+					p.active = true;
+				});
+			}
+			state.players.forEach((p) => {
+				p.hand=[state.deck.pop(),state.deck.pop()];
+			});
+			$('log').innerHTML=''; addLog('Nueva mano. Ciegas 10 / 20.'); addLog('Tu acción abre el pre-flop.'); render();
+		}
+		function render(){
+			const hero=state.players[3], toCall=Math.max(0,state.currentBet-hero.bet);
+			const revealOpponents = state.handOver || state.stage >= 4;
+			$('phase').textContent=['Pre-flop','Flop','Turn','River','Showdown'][state.stage]; $('pot').textContent=money(state.pot); $('heroStack').textContent=`${money(hero.stack)} fichas`;
+			$('heroCards').innerHTML=hero.hand.map((c,i)=>cardHTML(c,false,i*140)).join(''); $('board').innerHTML=state.board.map((c,i)=>cardHTML(c,false,i*110)).concat(Array(5-state.board.length).fill('<div class="card empty"></div>')).join('');
+			$('toCall').textContent=toCall?`Igualar ${money(toCall)}`:'Puedes pasar'; $('minRaise').textContent=`Subida mín. ${money(state.lastRaise)}`; $('callBtn').textContent=toCall?`Igualar ${money(toCall)}`:'Pasar';
+			const slider=$('raiseSlider'); slider.min=Math.max(state.currentBet+state.lastRaise,20); slider.max=Math.max(slider.min,hero.stack+hero.bet); slider.value=Math.min(Math.max(+slider.value,slider.min),+slider.max); $('raiseValue').textContent=`${money(+slider.value)} fichas`;
+			$('opponents').innerHTML=state.players.slice(0,3).map((p,i)=>`<div class="seat ${p.active?'':'folded'} ${!state.acting&&state.stage<4?'active':''}"><div class="seat-top"><span class="seat-name">${p.name}</span>${i===state.dealer?'<span class="dealer">D</span>':''}</div><div class="opponent-cards">${p.hand.map((c,j)=>cardHTML(c,!revealOpponents,j*120,i===0)).join('')}</div><div class="stack">${p.active?money(p.stack)+' fichas':'Retirado'}</div></div>`).join('');
+			['foldBtn','checkBtn','callBtn','raiseBtn'].forEach(id=>$(id).disabled=!state.acting||state.handOver); $('newBtn').hidden=!state.handOver;
+		}
+		function commitBet(player, amount){ amount=Math.min(amount,player.stack); player.stack-=amount; player.bet+=amount; state.pot+=amount; }
+		function nextStreet(){
+			state.players.forEach(p=>p.bet=0); state.currentBet=0; state.lastRaise=20;
+			if(state.stage===0){state.board.push(state.deck.pop(),state.deck.pop(),state.deck.pop()); state.stage=1; addLog('Flop: tres cartas comunitarias.');}
+			else if(state.stage===1){state.board.push(state.deck.pop()); state.stage=2; addLog('Turn: cuarta carta comunitaria.');}
+			else if(state.stage===2){state.board.push(state.deck.pop()); state.stage=3; addLog('River: quinta carta comunitaria.');}
+			else return showdown();
+			aiRound();
+		}
+		function activeCount(){return state.players.filter(p=>p.active).length;}
+		function aiRound(){
+			state.acting=false;
+			state.players.slice(0,3).filter(p=>p.active).forEach((p)=>{
+				const pair=p.hand[0].value===p.hand[1].value;
+				const strength=state.board.length?bestHand([...p.hand,...state.board]).score:(pair?3:1);
+				const toCall=Math.max(0,state.currentBet-p.bet);
+				const canRaise=p.stack>toCall;
+				const goodHand=strength>=4 || (state.board.length>=3 && strength>=3) || (state.board.length===0 && pair && strength>=3);
+				const raises=canRaise && (goodHand || Math.random()<.18);
+				if(strength<=0){ p.active=false; addLog(`${p.name} se retira porque no tiene nada.`); return; }
+				if(raises){
+					const raiseSize=Math.max(20, state.lastRaise);
+					const target=Math.min(p.bet+toCall+raiseSize,p.bet+p.stack);
+					const amount=target-p.bet;
+					commitBet(p,amount);
+					state.currentBet=Math.max(state.currentBet,target);
+					state.lastRaise=Math.max(state.lastRaise,raiseSize);
+					addLog(`${p.name} sube a ${money(state.currentBet)} porque tiene una buena mano.`);
+					return;
+				}
+				if(!goodHand && toCall>0 && Math.random()<.22){
+					p.active=false; addLog(`${p.name} se retira.`); return;
+				}
+				commitBet(p,toCall);
+				state.currentBet=Math.max(state.currentBet,p.bet);
+				addLog(`${p.name} ${toCall?'iguala':'pasa'}.`);
+			});
+			if(activeCount()===1) return showdown();
+			state.acting=true; render();
+		}
+		function playerAction(kind){
+			if(!state.acting||state.handOver)return; const hero=state.players[3], toCall=Math.max(0,state.currentBet-hero.bet);
+			if(kind==='fold'){hero.active=false; addLog('Te retiras de la mano.'); return finishByFold();}
+			if(kind==='call'){commitBet(hero,toCall); addLog(toCall?`Igualas ${money(toCall)}.`:'Pasas.');}
+			if(kind==='raise'){const target=Math.max(+ $('raiseSlider').value,state.currentBet+state.lastRaise); const amount=target-hero.bet; commitBet(hero,amount); state.lastRaise=Math.max(state.lastRaise,target-state.currentBet); state.currentBet=target; addLog(`Subes a ${money(target)}.`);}
+			state.acting=false; render(); setTimeout(()=>{ aiRound(); if(activeCount()>1 && state.stage<4){const allEqual=state.players.filter(p=>p.active).every(p=>p.bet===state.currentBet||p.stack===0); if(allEqual) nextStreet();} },450);
+		}
+		function finishByFold(){state.handOver=true; state.acting=false; const winner=state.players.find(p=>p.active); winner.stack+=state.pot; showToast(`${winner.name} gana el bote de ${money(state.pot)}.`); addLog(`${winner.name} gana porque todos los demás se retiraron.`); render();}
+		function bestHand(cards){
+			let best={score:0,label:'Carta alta',values:[]}; for(let a=0;a<cards.length-4;a++)for(let b=a+1;b<cards.length-3;b++)for(let c=b+1;c<cards.length-2;c++)for(let d=c+1;d<cards.length-1;d++)for(let e=d+1;e<cards.length;e++){const h=[cards[a],cards[b],cards[c],cards[d],cards[e]], counts={}; h.forEach(x=>counts[x.value]=(counts[x.value]||0)+1); const groups=Object.entries(counts).map(([v,n])=>({v:+v,n})).sort((x,y)=>y.n-x.n||y.v-x.v); const unique=[...new Set(h.map(x=>x.value))].sort((x,y)=>y-x); let straight=unique.length===5 && unique[0]-unique[4]===4; if(unique.join(',')==='14,5,4,3,2')straight=true; const flush=h.every(x=>x.suit===h[0].suit); let score=1,label='Carta alta',values=unique; if(straight&&flush){score=8;label='Escalera de color';} else if(groups[0].n===4){score=7;label='Poker';values=[groups[0].v,groups[1].v];} else if(groups[0].n===3&&groups[1].n===2){score=6;label='Full house';values=groups.map(x=>x.v);} else if(flush){score=5;label='Color';} else if(straight){score=4;label='Escalera';} else if(groups[0].n===3){score=3;label='Trío';values=groups.map(x=>x.v);} else if(groups[0].n===2&&groups[1].n===2){score=2;label='Dobles parejas';values=groups.map(x=>x.v);} else if(groups[0].n===2){score=1;label='Pareja';values=groups.map(x=>x.v);} if(score>best.score||score===best.score&&values.some((v,i)=>v>(best.values[i]||0))){best={score,label,values};} } return best;
+		}
+		function showdown(){state.stage=4; state.handOver=true; state.acting=false; const alive=state.players.filter(p=>p.active), ranked=alive.map(p=>({p,h:bestHand([...p.hand,...state.board])})).sort((a,b)=>b.h.score-a.h.score||Math.max(...b.h.values)-Math.max(...a.h.values)); const top=ranked[0], winners=ranked.filter(x=>x.h.score===top.h.score&&JSON.stringify(x.h.values)===JSON.stringify(top.h.values)); const share=Math.floor(state.pot/winners.length); winners.forEach(x=>x.p.stack+=share); $('message').textContent=`${winners.map(x=>x.p.name).join(' y ')} gana${winners.length>1?'n':''} con ${top.h.label}.`; addLog(`Showdown: ${winners.map(x=>x.p.name).join(' y ')} gana${winners.length>1?'n':''} ${money(share)} fichas.`); showToast($('message').textContent); render();}
+		function showToast(text){const toast=$('toast'); toast.textContent=text; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),3200);}
+		$('foldBtn').onclick=()=>playerAction('fold'); $('checkBtn').onclick=()=>playerAction('call'); $('callBtn').onclick=()=>playerAction('call'); $('raiseBtn').onclick=()=>playerAction('raise'); $('newBtn').onclick=setup; $('raiseSlider').oninput=e=>$('raiseValue').textContent=`${money(+e.target.value)} fichas`;
+		setup();
+	</script>
+</body>
+</html>
